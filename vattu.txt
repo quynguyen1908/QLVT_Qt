@@ -1,0 +1,3 @@
+VT001|Xi măng|Bao|60
+VT002|Cát|Khối|40
+VT003|Gạch|Kg|50
