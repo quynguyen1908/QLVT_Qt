@@ -5,6 +5,7 @@
 #include <QTableWidget>
 #include "vattu.h"
 #include "nhanvien.h"
+#include "doanhthu.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -52,6 +53,8 @@ private slots:
     void on_btnThongKe_clicked();
 
     void on_btnDoanhThu_clicked();
+
+    void on_btnInDoanhThu_clicked();
 
 private:
     Ui::MainWindow *ui;

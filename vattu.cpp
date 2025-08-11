@@ -15,9 +15,8 @@ nodeVT* TimVatTu(Tree_VT root, const char* maVT) {
 // Hàm thêm vật tư vào cây nhị phân tìm kiếm
 bool ThemVatTu(Tree_VT &root, VatTu vt, QWidget *parent) {
     // Kiểm tra trùng lặp mã vật tư
-    if (TimVatTu(root, vt.MAVT)) {
-        if (parent)
-            QMessageBox::warning(parent, "Lỗi", QString("Mã vật tư '%1' đã tồn tại!").arg(vt.MAVT));
+    if (TimVatTu(root, vt.MAVT) != nullptr) {
+        QMessageBox::warning(parent, "Lỗi", QString("Mã vật tư '%1' đã tồn tại!").arg(vt.MAVT));
         return false;
     }
 
@@ -27,8 +26,6 @@ bool ThemVatTu(Tree_VT &root, VatTu vt, QWidget *parent) {
         root->vt = vt;
         root->left = nullptr;
         root->right = nullptr;
-        if (parent)
-            QMessageBox::information(parent, "Thông báo", QString("Đã thêm vật tư '%1' thành công!").arg(vt.MAVT));
         return true;
     }
 

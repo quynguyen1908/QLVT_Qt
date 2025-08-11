@@ -1,3 +1,20 @@
-VT001|Xi măng|Bao|60
-VT002|Cát|Khối|40
-VT003|Gạch|Kg|50
+VT001|Xi măng Nghi Sơn|Bao|120
+VT002|Xi măng Hà Tiên|Bao|80
+VT003|Cát vàng|Khối|150
+VT004|Cát đen|Khối|200
+VT005|Gạch đỏ 2 lỗ|Viên|5000
+VT006|Gạch không nung|Viên|4000
+VT007|Sắt phi 12|Cây|300
+VT008|Sắt phi 16|Cây|250
+VT009|Thép hộp 20x20|Cây|150
+VT010|Thép hộp 40x40|Cây|100
+VT011|Đá 1x2|Khối|180
+VT012|Đá 4x6|Khối|140
+VT013|Tôn lạnh 1ly|Tấm|60
+VT014|Tôn kẽm 0.5ly|Tấm|80
+VT015|Sơn Dulux|Thùng|50
+VT016|Sơn Jotun|Thùng|45
+VT017|Ống nhựa PVC 90|Ống|300
+VT018|Ống nhựa PVC 114|Ống|200
+VT019|Dây điện Cadivi 2.5|Cuộn|120
+VT020|Dây điện Cadivi 4.0|Cuộn|100

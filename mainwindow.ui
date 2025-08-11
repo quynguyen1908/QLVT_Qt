@@ -605,19 +605,112 @@
           </widget>
          </widget>
          <widget class="QWidget" name="pageDoanhThu">
-          <widget class="QLabel" name="label_9">
-           <property name="geometry">
-            <rect>
-             <x>200</x>
-             <y>70</y>
-             <width>111</width>
-             <height>16</height>
-            </rect>
-           </property>
-           <property name="text">
-            <string>In doanh thu</string>
-           </property>
-          </widget>
+          <layout class="QVBoxLayout" name="verticalLayout_13">
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_9">
+             <item>
+              <widget class="QLabel" name="label_9">
+               <property name="maximumSize">
+                <size>
+                 <width>100</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>Nhập thời gian:</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <layout class="QVBoxLayout" name="verticalLayout_14">
+               <item>
+                <widget class="QLabel" name="label_13">
+                 <property name="text">
+                  <string>Từ ngày:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QDateEdit" name="dateFrom"/>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QVBoxLayout" name="verticalLayout_16">
+               <item>
+                <widget class="QLabel" name="label_14">
+                 <property name="text">
+                  <string>Đến ngày:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QDateEdit" name="dateTo"/>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnInDoanhThu">
+               <property name="text">
+                <string>In doanh thu</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QVBoxLayout" name="verticalLayout_12">
+             <item>
+              <widget class="QLabel" name="label_12">
+               <property name="text">
+                <string> DANH SÁCH 10 VẬT TƯ DOANH THU CAO NHẤT</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignmentFlag::AlignCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_11">
+               <item>
+                <widget class="QLabel" name="lblNgayIn">
+                 <property name="text">
+                  <string/>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignmentFlag::AlignCenter</set>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <widget class="QTableWidget" name="tableDoanhThu">
+               <column>
+                <property name="text">
+                 <string>Mã vật tư</string>
+                </property>
+               </column>
+               <column>
+                <property name="text">
+                 <string>Tên vật tư </string>
+                </property>
+               </column>
+               <column>
+                <property name="text">
+                 <string>Đơn vị tính</string>
+                </property>
+               </column>
+               <column>
+                <property name="text">
+                 <string>Doanh thu</string>
+                </property>
+               </column>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
          </widget>
         </widget>
        </item>

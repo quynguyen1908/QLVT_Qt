@@ -27,11 +27,18 @@ MainWindow::MainWindow(QWidget *parent)
     ui->tableNV->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     ui->tableVT->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     ui->tableCTHD->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    ui->tableDoanhThu->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 
     // Hiệu chỉnh trường nhập ngày
     ui->dateNgayLap->setDate(QDate::currentDate());
     ui->dateNgayLap->setMaximumDate(QDate::currentDate());
     ui->dateNgayLap->setDisplayFormat("dd/MM/yyyy");
+    ui->dateFrom->setDate(QDate::currentDate());
+    ui->dateFrom->setMaximumDate(QDate::currentDate());
+    ui->dateFrom->setDisplayFormat("dd/MM/yyyy");
+    ui->dateTo->setDate(QDate::currentDate());
+    ui->dateTo->setMaximumDate(QDate::currentDate());
+    ui->dateTo->setDisplayFormat("dd/MM/yyyy");
 
     // Đọc dữ liệu từ file .txt (cùng cấp với .cpp)
     LoadVatTuFromFile(dsvt, "../../vattu.txt");
@@ -73,6 +80,7 @@ void MainWindow::on_btnThemVT_clicked() {
         if (!ThemVatTu(dsvt, vt)) {
             return;
         }
+        QMessageBox::information(this, "Thông báo", QString("Đã thêm vật tư '%1' thành công!").arg(vt.MAVT));
         FillTableVatTu(ui->tableVatTu, 0);
         LoadComboBoxVatTu();
         SaveVatTuToFile(dsvt, "../../vattu.txt");
@@ -231,6 +239,8 @@ void MainWindow::on_btnAdd_clicked() {
 }
 
 void MainWindow::addChiTietRow(int row) {
+    if (getDanhSachMaVT(dsvt).length() == ui->tableCTHD->rowCount()) return;
+
     ui->tableCTHD->insertRow(row);
 
     QComboBox *comboMAVT = new QComboBox(this);
@@ -238,7 +248,7 @@ void MainWindow::addChiTietRow(int row) {
     ui->tableCTHD->setCellWidget(row, 0, comboMAVT);
 
     QSpinBox *spinSoLuong = new QSpinBox(this);
-    spinSoLuong->setRange(1, 100000);
+    spinSoLuong->setRange(1, 999999);
     ui->tableCTHD->setCellWidget(row, 1, spinSoLuong);
 
     QDoubleSpinBox *spinDonGia = new QDoubleSpinBox(this);
@@ -476,3 +486,51 @@ void MainWindow::on_btnDoanhThu_clicked() {
     ui->stackedWidget->setCurrentIndex(5);
 }
 
+void MainWindow::on_btnInDoanhThu_clicked() {
+    QDate fromDate = ui->dateFrom->date();
+    QDate toDate = ui->dateTo->date();
+
+    if (fromDate > toDate) {
+        QMessageBox::warning(this, "Lỗi", "Ngày bắt đầu không được lớn hơn ngày kết thúc!");
+        return;
+    }
+
+    ThoiGian from = { fromDate.day(), fromDate.month(), fromDate.year() };
+    ThoiGian to   = { toDate.day(),   toDate.month(),   toDate.year() };
+
+    // Tính doanh thu
+    PTRDT dsdt = nullptr;
+    TinhDoanhThu(dsnv, from, to, dsdt);
+
+    // Sắp xếp và lấy top 10
+    SapXepDoanhThu(dsdt);
+    dsdt = LayTopN(dsdt, 10);
+
+    // Đổ dữ liệu ngày vào label
+    QString ngayText = QString("Từ ngày %1/%2/%3 đến %4/%5/%6")
+                           .arg(from.NGAY).arg(from.THANG).arg(from.NAM)
+                           .arg(to.NGAY).arg(to.THANG).arg(to.NAM);
+    ui->lblNgayIn->setText(ngayText);
+
+    // Đổ dữ liệu vào bảng
+    ui->tableDoanhThu->setRowCount(0);
+    int row = 0;
+    PTRDT p = dsdt;
+
+    while (p) {
+        nodeVT* vt = TimVatTu(dsvt, p->dt.MAVT);
+        if (!vt) continue;
+
+        QLocale locale = QLocale(QLocale::Vietnamese);
+        QString doanhThuStr = locale.toString(p->dt.DOANHTHU, 'f', 2);
+
+        ui->tableDoanhThu->insertRow(row);
+        ui->tableDoanhThu->setItem(row, 0, new QTableWidgetItem(vt->vt.MAVT));
+        ui->tableDoanhThu->setItem(row, 1, new QTableWidgetItem(vt->vt.TENVT));
+        ui->tableDoanhThu->setItem(row, 2, new QTableWidgetItem(vt->vt.DVT));
+        ui->tableDoanhThu->setItem(row, 3, new QTableWidgetItem(doanhThuStr));
+
+        row++;
+        p = p->next;
+    }
+}
