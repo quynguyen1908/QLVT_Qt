@@ -27,5 +27,6 @@ nodeVT* TimVatTu(Tree_VT root, const char* maVT);
 bool ThemVatTu(Tree_VT &root, VatTu vt, QWidget *parent = nullptr);
 QString normalizeName(const QString &raw);
 QStringList getDanhSachMaVT(Tree_VT root);
+nodeVT* XoaVatTu(nodeVT* root, const char* maVT);
 
 #endif // VATTU_H

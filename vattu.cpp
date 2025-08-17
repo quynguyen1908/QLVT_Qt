@@ -58,3 +58,51 @@ QStringList getDanhSachMaVT(Tree_VT root) {
     inOrder(root);
     return list;
 }
+
+nodeVT* XoaVatTu(nodeVT* root, const char* maVT) {
+    nodeVT *parent = nullptr;
+    nodeVT *curr = root;
+
+    // 1. Tìm node cần xóa
+    while (curr && strcmp(maVT, curr->vt.MAVT) != 0) {
+        parent = curr;
+        if (strcmp(maVT, curr->vt.MAVT) < 0)
+            curr = curr->left;
+        else
+            curr = curr->right;
+    }
+
+    if (!curr) return root; // Không tìm thấy, return cây gốc
+
+    // 2. Nếu node có cả 2 con
+    if (curr->left && curr->right) {
+        // Tìm node nhỏ nhất bên phải
+        nodeVT *succParent = curr;
+        nodeVT *succ = curr->right;
+        while (succ->left) {
+            succParent = succ;
+            succ = succ->left;
+        }
+        // Copy dữ liệu của succ vào curr
+        curr->vt = succ->vt;
+
+        // Đổi con trỏ curr -> succ để xử lý xóa node succ
+        parent = succParent;
+        curr = succ;
+    }
+
+    // 3. Lúc này curr chỉ còn 0 hoặc 1 con
+    nodeVT *child = (curr->left) ? curr->left : curr->right;
+
+    if (!parent) {
+        // Xóa root
+        delete curr;
+        return child; // Cập nhật root mới
+    }
+
+    if (parent->left == curr) parent->left = child;
+    else parent->right = child;
+
+    delete curr;
+    return root;
+}

@@ -95,3 +95,32 @@ PTRHD TimHoaDonTheoSoHD(const List_NV &dsnv, const char *soHD) {
     }
     return nullptr;
 }
+
+// Kiểm tra vật tư có trong hóa đơn nào không
+bool KiemTraVatTuTrongHoaDon(List_NV &dsnv, const char* maVT) {
+    for (int i = 0; i < dsnv.n; ++i) {
+        PTRHD pHD = dsnv.nodes[i].FirstHD;
+        while (pHD) {
+            PTRCTHD pCT = pHD->hd.FirstCTHD;
+            while (pCT) {
+                if (strcmp(pCT->cthd.MAVT, maVT) == 0) {
+                    return true; // Vật tư này có trong hóa đơn
+                }
+                pCT = pCT->next;
+            }
+            pHD = pHD->next;
+        }
+    }
+    return false;
+}
+
+double TinhTriGiaHD(const HoaDon &hd) {
+    double tong = 0;
+    PTRCTHD pCT = hd.FirstCTHD;
+    while (pCT) {
+        double triGia = pCT->cthd.SOLUONG * pCT->cthd.DONGIA * (1 + pCT->cthd.VAT / 100.0);
+        tong += triGia;
+        pCT = pCT->next;
+    }
+    return tong;
+}

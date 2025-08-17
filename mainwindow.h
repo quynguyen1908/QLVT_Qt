@@ -28,7 +28,13 @@ private slots:
 
     void on_btnLapHD_clicked();
 
+    void on_tableVatTu_cellClicked(int row, int column);
+
     void on_btnThemVT_clicked();
+
+    void on_btnSuaVT_clicked();
+
+    void on_btnXoaVT_clicked();
 
     void on_tableNhanVien_cellClicked(int row, int column);
 
@@ -55,6 +61,10 @@ private slots:
     void on_btnDoanhThu_clicked();
 
     void on_btnInDoanhThu_clicked();
+
+    void on_btnInHoaDon_clicked();
+
+    void on_btnInTK_clicked();
 
 private:
     Ui::MainWindow *ui;

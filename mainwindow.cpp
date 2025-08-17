@@ -4,6 +4,7 @@
 #include "addvattudialog.h"
 #include "addnhanviendialog.h"
 #include "editnhanviendialog.h"
+#include "editvattudialog.h"
 
 #include <QMessageBox>
 #include <QSpinBox>
@@ -17,9 +18,12 @@ MainWindow::MainWindow(QWidget *parent)
     // Vô hiệu các nút sửa/xóa
     ui->btnSuaNV->setEnabled(false);
     ui->btnXoaNV->setEnabled(false);
+    ui->btnSuaVT->setEnabled(false);
+    ui->btnXoaVT->setEnabled(false);
 
     // Kết nối sự kiện nhấn vào item trong table
     connect(ui->tableNhanVien, &QTableWidget::cellClicked, this, &MainWindow::on_tableNhanVien_cellClicked);
+    connect(ui->tableVatTu, &QTableWidget::cellClicked, this, &MainWindow::on_tableVatTu_cellClicked);
 
     // Chỉnh sửa header của các table
     ui->tableVatTu->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
@@ -28,6 +32,8 @@ MainWindow::MainWindow(QWidget *parent)
     ui->tableVT->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     ui->tableCTHD->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     ui->tableDoanhThu->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    ui->tableInHD->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    ui->tableThongKe->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 
     // Hiệu chỉnh trường nhập ngày
     ui->dateNgayLap->setDate(QDate::currentDate());
@@ -39,6 +45,12 @@ MainWindow::MainWindow(QWidget *parent)
     ui->dateTo->setDate(QDate::currentDate());
     ui->dateTo->setMaximumDate(QDate::currentDate());
     ui->dateTo->setDisplayFormat("dd/MM/yyyy");
+    ui->dateFromTK->setDate(QDate::currentDate());
+    ui->dateFromTK->setMaximumDate(QDate::currentDate());
+    ui->dateFromTK->setDisplayFormat("dd/MM/yyyy");
+    ui->dateToTK->setDate(QDate::currentDate());
+    ui->dateToTK->setMaximumDate(QDate::currentDate());
+    ui->dateToTK->setDisplayFormat("dd/MM/yyyy");
 
     // Đọc dữ liệu từ file .txt (cùng cấp với .cpp)
     LoadVatTuFromFile(dsvt, "../../vattu.txt");
@@ -85,6 +97,81 @@ void MainWindow::on_btnThemVT_clicked() {
         LoadComboBoxVatTu();
         SaveVatTuToFile(dsvt, "../../vattu.txt");
     }
+}
+
+void MainWindow::on_tableVatTu_cellClicked(int row, int column) {
+    Q_UNUSED(row);
+    Q_UNUSED(column);
+    ui->btnSuaVT->setEnabled(true);
+    ui->btnXoaVT->setEnabled(true);
+}
+
+void MainWindow::on_btnSuaVT_clicked() {
+    int row = ui->tableVatTu->currentRow();
+    if (row < 0) return;
+
+    // Lấy mã VT từ dòng được chọn
+    QTableWidgetItem* item = ui->tableVatTu->item(row, 0);
+    if (!item) {
+        QMessageBox::warning(this, "Lỗi", "Không thể lấy dữ liệu vật tư.");
+        return;
+    }
+    QString maVT = item->text();
+
+    nodeVT* node = TimVatTu(dsvt, maVT.toStdString().c_str());
+    if (!node) {
+        QMessageBox::warning(this, "Lỗi", "Không tìm thấy vật tư!");
+        return;
+    }
+
+    EditVatTuDialog dialog(this);
+    dialog.setVatTu(node->vt);
+
+    if (dialog.exec() == QDialog::Accepted) {
+        dialog.updateVatTu(node->vt);
+        FillTableVatTu(ui->tableVatTu, 0);
+        LoadComboBoxVatTu();
+        SaveVatTuToFile(dsvt, "../../vattu.txt");
+        QMessageBox::information(this, "Thông báo", "Đã sửa vật tư!");
+    }
+}
+
+
+void MainWindow::on_btnXoaVT_clicked() {
+    int row = ui->tableVatTu->currentRow();
+    if (row < 0) return;
+
+    QTableWidgetItem *item = ui->tableVatTu->item(row, 0);
+    if (!item) return;
+
+    QString maVT = item->text();
+
+    nodeVT* node = TimVatTu(dsvt, maVT.toStdString().c_str());
+    if (!node) {
+        QMessageBox::warning(this, "Lỗi", "Không tìm thấy vật tư!");
+        return;
+    }
+
+    // Kiểm tra xem vật tư có trong hóa đơn nào không
+    if (KiemTraVatTuTrongHoaDon(dsnv, maVT.toStdString().c_str())) {
+        QMessageBox::warning(this, "Lỗi", QString("Vật tư [%1] đang được sử dụng trong hóa đơn, không thể xóa!").arg(maVT));
+        return;
+    }
+
+    QMessageBox::StandardButton reply = QMessageBox::question(
+        this,
+        "Xác nhận",
+        QString("Bạn có chắc muốn xóa vật tư [%1]?").arg(maVT),
+        QMessageBox::Yes | QMessageBox::No
+        );
+    if (reply != QMessageBox::Yes) return;
+
+    dsvt = XoaVatTu(dsvt, maVT.toStdString().c_str());
+
+    FillTableVatTu(ui->tableVatTu, 0);
+    LoadComboBoxVatTu();
+    SaveVatTuToFile(dsvt, "../../vattu.txt");
+    QMessageBox::information(this, "Thông báo", "Đã xóa vật tư!");
 }
 
 void MainWindow::FillTableVatTu(QTableWidget* table, int choice) {
@@ -476,11 +563,136 @@ void MainWindow::on_btnInHD_clicked() {
     ui->stackedWidget->setCurrentIndex(3);
 }
 
+void MainWindow::on_btnInHoaDon_clicked() {
+    QString soHD = ui->txtSoHoaDon->text().trimmed().toUpper();
+
+    // Kiểm tra
+    if (soHD.isEmpty()) {
+        QMessageBox::warning(this, "Lỗi", "Số hóa đơn không được để trống!");
+        return;
+    }
+
+    static const QRegularExpression re("^[A-Za-z0-9]+$");
+    if (!re.match(soHD).hasMatch()) {
+        QMessageBox::warning(this, "Lỗi", "Số hóa đơn chỉ được chứa chữ và số!");
+        return;
+    }
+
+    PTRHD pHD = TimHoaDonTheoSoHD(dsnv, soHD.toStdString().c_str());
+    if (!pHD) {
+        QMessageBox::warning(this, "Lỗi", "Không tìm thấy số hóa đơn này!");
+        return;
+    }
+
+    // Đổ dữ liệu vào label
+    QString so = QString("Số hóa đơn: %1").arg(pHD->hd.SOHD);
+    ui->lblSoHD->setText(so);
+    QString loai = QString("Loại hóa đơn: %1").arg(pHD->hd.LOAI == 'N' ? "Nhập" : "Xuất");
+    ui->lblLoaiHD->setText(loai);
+    QString ngaylap = QString("Ngày lập: %1/%2/%3")
+                        .arg(pHD->hd.NGAYLAP.NGAY, 2, 10, QChar('0'))
+                        .arg(pHD->hd.NGAYLAP.THANG, 2, 10, QChar('0'))
+                        .arg(pHD->hd.NGAYLAP.NAM);
+    ui->lblNgayLap->setText(ngaylap);
+    QString hoTenNV = "";
+    for (int i = 0; i < dsnv.n; i++) {
+        PTRHD tmp = dsnv.nodes[i].FirstHD;
+        while (tmp) {
+            if (tmp == pHD) {
+                hoTenNV = QString("Họ tên nhân viên lập: %1 %2").arg(dsnv.nodes[i].HO).arg(dsnv.nodes[i].TEN);
+                break;
+            }
+            tmp = tmp->next;
+        }
+        if (!hoTenNV.isEmpty()) break;
+    }
+    ui->lblTenNV->setText(hoTenNV);
+
+    // Đổ dữ liệu vào bảng
+    ui->tableInHD->clearContents();
+    ui->tableInHD->setRowCount(0);
+
+    int row = 0;
+    PTRCTHD pCT = pHD->hd.FirstCTHD;
+    while (pCT) {
+        // Tìm vật tư để lấy tên
+        nodeVT* vtNode = TimVatTu(dsvt, pCT->cthd.MAVT);
+
+        QString tenVT = (vtNode ? vtNode->vt.TENVT : "???");
+        QLocale locale = QLocale(QLocale::Vietnamese);
+
+        ui->tableInHD->insertRow(row);
+        ui->tableInHD->setItem(row, 0, new QTableWidgetItem(tenVT));
+        ui->tableInHD->setItem(row, 1, new QTableWidgetItem(QString::number(pCT->cthd.SOLUONG)));
+        ui->tableInHD->setItem(row, 2, new QTableWidgetItem(QString::number(pCT->cthd.DONGIA, 'f', 2)));
+        ui->tableInHD->setItem(row, 3, new QTableWidgetItem((QString::number(pCT->cthd.VAT) + "%")));
+        ui->tableInHD->setItem(row, 4, new QTableWidgetItem(locale.toString(pCT->cthd.SOLUONG * pCT->cthd.DONGIA * (1 + pCT->cthd.VAT / 100.0), 'f', 2)));
+
+        row++;
+        pCT = pCT->next;
+    }
+}
 
 void MainWindow::on_btnThongKe_clicked() {
     ui->stackedWidget->setCurrentIndex(4);
 }
 
+void MainWindow::on_btnInTK_clicked() {
+    QDate fromDate = ui->dateFromTK->date();
+    QDate toDate = ui->dateToTK->date();
+
+    if (fromDate > toDate) {
+        QMessageBox::warning(this, "Lỗi", "Ngày bắt đầu không được lớn hơn ngày kết thúc!");
+        return;
+    }
+
+    ThoiGian from = { fromDate.day(), fromDate.month(), fromDate.year() };
+    ThoiGian to   = { toDate.day(),   toDate.month(),   toDate.year() };
+
+    // Đổ dữ liệu ngày vào label
+    QString ngayText = QString("Từ ngày %1/%2/%3 đến %4/%5/%6")
+                           .arg(from.NGAY).arg(from.THANG).arg(from.NAM)
+                           .arg(to.NGAY).arg(to.THANG).arg(to.NAM);
+    ui->lblNgayTK->setText(ngayText);
+
+    // Đổ dữ liệu vào bảng
+    ui->tableThongKe->clearContents();
+    ui->tableThongKe->setRowCount(0);
+    int row = 0;
+
+    for (int i = 0; i < dsnv.n; i++) {
+        QString hoTenNV = QString("%1 %2").arg(dsnv.nodes[i].HO).arg(dsnv.nodes[i].TEN);
+
+        PTRHD pHD = dsnv.nodes[i].FirstHD;
+        while(pHD) {
+            if (NgayTrongKhoang(pHD->hd.NGAYLAP, from, to)) {
+                double triGia = TinhTriGiaHD(pHD->hd);
+
+                ui->tableThongKe->insertRow(row);
+                ui->tableThongKe->setItem(row, 0, new QTableWidgetItem(QString::fromUtf8(pHD->hd.SOHD)));
+                ui->tableThongKe->setItem(row, 1, new QTableWidgetItem(
+                                                      QString("%1/%2/%3")
+                                                          .arg(pHD->hd.NGAYLAP.NGAY, 2, 10, QChar('0'))
+                                                          .arg(pHD->hd.NGAYLAP.THANG, 2, 10, QChar('0'))
+                                                          .arg(pHD->hd.NGAYLAP.NAM)
+                                                      ));
+                ui->tableThongKe->setItem(row, 2, new QTableWidgetItem(pHD->hd.LOAI == 'N' ? "Nhập" : "Xuất"));
+                ui->tableThongKe->setItem(row, 3, new QTableWidgetItem(hoTenNV));
+
+                QLocale locale = QLocale(QLocale::Vietnamese);
+                QString triGiaStr = locale.toString(triGia, 'f', 2);
+                ui->tableThongKe->setItem(row, 4, new QTableWidgetItem(triGiaStr));
+
+                row++;
+            }
+            pHD = pHD->next;
+        }
+    }
+
+    if (row == 0) {
+        QMessageBox::information(this, "Kết quả", "Không có hóa đơn nào trong khoảng thời gian đã chọn!");
+    }
+}
 
 void MainWindow::on_btnDoanhThu_clicked() {
     ui->stackedWidget->setCurrentIndex(5);
@@ -513,6 +725,7 @@ void MainWindow::on_btnInDoanhThu_clicked() {
     ui->lblNgayIn->setText(ngayText);
 
     // Đổ dữ liệu vào bảng
+    ui->tableDoanhThu->clearContents();
     ui->tableDoanhThu->setRowCount(0);
     int row = 0;
     PTRDT p = dsdt;
@@ -532,5 +745,9 @@ void MainWindow::on_btnInDoanhThu_clicked() {
 
         row++;
         p = p->next;
+    }
+
+    if (row == 0) {
+        QMessageBox::information(this, "Kết quả", "Không có vật tư nào trong khoảng thời gian đã chọn!");
     }
 }

@@ -28,5 +28,7 @@ void XoaToanBoHoaDon(NhanVien &nv);
 void SortNhanVienTheoMa(List_NV &dsnv);
 void SortNhanVienTheoTen(List_NV &dsnv);
 PTRHD TimHoaDonTheoSoHD(const List_NV &dsnv, const char *soHD);
+bool KiemTraVatTuTrongHoaDon(List_NV &dsnv, const char* maVT);
+double TinhTriGiaHD(const HoaDon &hd);
 
 #endif // NHANVIEN_H

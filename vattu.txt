@@ -1,6 +1,6 @@
 VT001|Xi măng Nghi Sơn|Bao|120
 VT002|Xi măng Hà Tiên|Bao|80
-VT003|Cát vàng|Khối|150
+VT003|Cát Vàng|Khối|150
 VT004|Cát đen|Khối|200
 VT005|Gạch đỏ 2 lỗ|Viên|5000
 VT006|Gạch không nung|Viên|4000
